@@ -4,16 +4,50 @@ from pprint import pprint
 from itertools import islice
 
 
-sourcedir = r"C:\B_Py\Blender\source"
+sourcedir = r"C:\B_Py\Cinemagraph\source"
 outdir = sourcedir + r"\output"
 if not os.path.exists(outdir):
     os.mkdir( outdir )
-# load in a gif or sequence of images
-filelist = glob.iglob(sourcedir+r"\*.jpg")
-
-# if gif, extract images
 
 name_image_dict = {}
+
+is_gif = False
+# if gif, extract images
+gif_path = glob.glob(sourcedir+r"\*.gif")
+if len(gif_path)>0:
+    print "Found a gif - extracting frames, then continuing as normal..."
+    is_gif = True
+    #load and chop the gif
+    infile = gif_path[0] #only take the first gif, if there are many
+    print infile
+    try:
+        im = Image.open(infile)
+    except IOError:
+            print ( "Cannot load gif '"+str( infile ) )+"'"
+    i = 0   #counter for gif frames
+    my_palette = im.getpalette()
+    new_path = "\\".join(infile.split("\\")[:-1])+"\\"
+    name = ((new_path + infile.split("\\")[-1]).split(".")[0])+".png"
+    print name
+    try:
+        while 1:
+            im.putpalette(my_palette)
+            new_im = Image.new("RGBA", im.size)
+            new_im.paste(im)
+            new_im.save(infile.split(".")[0] +str(i)+ '.png')   #save the new img in g/...
+
+            i += 1
+            im.seek( im.tell()+1 )
+
+    except( EOFError ):
+        pass
+
+# load in sequence of images
+if is_gif:
+    filelist = glob.iglob(sourcedir+r"\*.png")
+else:
+    filelist = glob.iglob(sourcedir+r"\*.jpg")
+
 #put all images in a sorted list
 for infile in filelist:
     try:
